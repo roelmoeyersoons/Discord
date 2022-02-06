@@ -3,19 +3,28 @@ using Discord.WebSocket;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SongBlockChain.Core;
 using SongBlockChain.Modules.Commands;
 using SongBlockChain.Persistence;
 using System;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.IO;
+using Microsoft.Extensions.Options;
 
 namespace SongBlockChain
 {
+    
+
     class Program
     {
-        static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
+        public IConfiguration Config { get; }
+
+
+    static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient _client;
         private CommandService _commands;
@@ -26,22 +35,37 @@ namespace SongBlockChain
             _client = new DiscordSocketClient();
             _commands = new CommandService();
 
-            _services = new ServiceCollection()
+            var serviceCollection = new ServiceCollection()
                 .AddSingleton(_client)
                 .AddSingleton(_commands)
                 .AddHttpClient()
+                //.AddOptions<BotOptions>().Configure<IConfiguration>((settings, config) =>
+                //{
+                //    config.GetSection("Dataverse").Bind(settings);
+                //})
+                //.Configure<BotOptions>(Config.GetSection(BotOptions.Client))
                 //.AddMediatR(typeof(Program))
-                .AddDbContext<SongOwnerContext>(opt => opt.UseInMemoryDatabase("myDataBase"))
-                .BuildServiceProvider();
+                .AddDbContext<SongOwnerContext>(opt => opt.UseInMemoryDatabase("myDataBase"));
 
-            string token = "OTM0NTA5Nzk5MDkyMTUwMzAy.YexIEg.8LNg8W1mXyn1CLX0r85Ki3MSnJU";
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", false)
+                //.AddEnvironmentVariables()
+                .Build();
+
+            serviceCollection.Configure<BotOptions>(configuration.GetSection(BotOptions.Client));
+
+            _services = serviceCollection.BuildServiceProvider();
+
+            var opts = _services.GetService<IOptions<BotOptions>>();
+
 
 
             Console.WriteLine("Registering commands...");
             await RegisterCommandsAsync();
 
             Console.WriteLine("Logging in...");
-            await _client.LoginAsync(Discord.TokenType.Bot, token);
+            await _client.LoginAsync(Discord.TokenType.Bot, opts.Value.ClientSecret);
 
             Console.WriteLine("Starting Client...");
             await _client.StartAsync();
