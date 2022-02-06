@@ -31,7 +31,6 @@ namespace SongBlockChain.Modules.Commands
 
             if (match.Success)
             {
-                Console.WriteLine("song detected, posting songId");
                 var song = match.Groups.Values.Last().Value;
                 return song;
             }
