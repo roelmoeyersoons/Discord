@@ -14,6 +14,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace SongBlockChain
 {
@@ -21,14 +23,30 @@ namespace SongBlockChain
 
     class Program
     {
-        public IConfiguration Config { get; }
-
-
         static async Task Main(string[] args) 
         {
-            var serviceCollection = new ServiceCollection()
-                .AddHttpClient()
+            //createdefaulthostbuilder sets default and environment and DI container -> overridden with configureservices
+            using (var host = Host.CreateDefaultBuilder(args).ConfigureServices((context, services) => { 
+                services.AddDiscordBot();
+                var configurationRoot = context.Configuration;
+                services.Configure<BotOptions>(configurationRoot.GetSection(BotOptions.Client));
+
+            }).Build())
+            {
+                await host.RunAsync();
+                //await host.WaitForShutdownAsync();
+            }
+        }
+        
+    }
+
+    public static class Startup
+    {
+        public static IServiceCollection AddDiscordBot(this IServiceCollection services)
+        {
+            services.AddHttpClient()
                 .AddTransient<DiscordSocketClient>()
+                
                 .AddSingleton<CommandService>()
                 //.AddOptions<BotOptions>().Configure<IConfiguration>((settings, config) =>
                 //{
@@ -37,18 +55,9 @@ namespace SongBlockChain
                 //.Configure<BotOptions>(Config.GetSection(BotOptions.Client))
                 //.AddMediatR(typeof(Program))
                 .AddDbContext<SongOwnerContext>(opt => opt.UseInMemoryDatabase("myDataBase"))
-                .AddTransient<DiscordBot>();
+                .AddHostedService<DiscordBot>();
 
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", false)
-                //.AddEnvironmentVariables()
-                .Build();
-
-            serviceCollection.Configure<BotOptions>(configuration.GetSection(BotOptions.Client));
-
-            var provider = serviceCollection.BuildServiceProvider();
-            await provider.GetRequiredService<DiscordBot>().Run(provider, args);
+            return services;
         }
     }
 }
