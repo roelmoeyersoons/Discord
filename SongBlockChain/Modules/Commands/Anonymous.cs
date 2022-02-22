@@ -1,4 +1,6 @@
 ﻿using Discord.Commands;
+using Song.Model.Data;
+using SongBlockChain.Persistence;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,17 +11,33 @@ namespace SongBlockChain.Modules.Commands
 {
     public class Anonymous : ModuleBase<SocketCommandContext>
     {
+        private readonly SongOwnerContext _context;
+
+        public Anonymous(SongOwnerContext context)
+        {
+            this._context = context;
+        }
+
         [Command("register")]
-        public Task RegisterUser(string pubKey)
+        public async Task RegisterUser(string pubKey)
         {
             var discordId = Context.User.Id;
             var discordName = Context.User.Username;
 
-            //handle registering of code here
-            //database.AddUserIfNotExists()
+            //should be a mediatr request
+
+            var newOwner = new Owner
+            {
+                OwnerId = discordId.ToString(),
+                OwnerKey = pubKey,
+                OwnerName = discordName,
+            };
+
+            await _context.Users.AddAsync(newOwner);
+            await _context.SaveChangesAsync();
             
-            return ReplyAsync($"Public key registered.");
-            return ReplyAsync($"Your discord is already registered with public key {"oldkey"}");
+            await ReplyAsync($"Public key registered.");
+            //await ReplyAsync($"Your discord is already registered with public key {"oldkey"}");
         }
 
         [Command("getowner")]

@@ -17,15 +17,15 @@ namespace SongBlockChain.Core
     public class DiscordBot : IHostedService
     {
         private readonly IOptions<BotOptions> _options;
-        private readonly ILogger _logger;
+        private readonly ILogger<DiscordBot> _logger;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly IServiceProvider _provider;
 
-        public DiscordBot(IOptions<BotOptions> options, DiscordSocketClient client, CommandService commands, IServiceProvider provider) //, ILogger logger)
+        public DiscordBot(IOptions<BotOptions> options, DiscordSocketClient client, CommandService commands, IServiceProvider provider, ILogger<DiscordBot> logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            //_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _commands = commands ?? throw new ArgumentNullException(nameof(commands));
             _provider = provider;
@@ -33,19 +33,20 @@ namespace SongBlockChain.Core
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Registering commands...");
+
+            _logger.LogInformation("Registering commands...");
 
             _client.MessageReceived += HandleCommandAsync;
             _client.MessageReceived += CheckSpotifyIdAsync;
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _provider);
 
-            Console.WriteLine("Logging in...");
+            _logger.LogInformation("Logging in...");
             await _client.LoginAsync(Discord.TokenType.Bot, _options.Value.ClientSecret);
 
-            Console.WriteLine("Starting Client...");
+            _logger.LogInformation("Starting Client...");
             await _client.StartAsync();
 
-            Console.WriteLine("Client started.");
+            _logger.LogInformation("Client started.");
         }
 
         private async Task CheckSpotifyIdAsync(SocketMessage arg)
