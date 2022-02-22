@@ -12,6 +12,8 @@ namespace SongBlockChain.Modules.Commands
     //[RequireOwner]
     public class Admin : ModuleBase<SocketCommandContext>
     {
+
+        //TODO: SWITCH TO MEDIATR
         private readonly SongOwnerContext _context;
 
         public Admin(SongOwnerContext context)

@@ -16,6 +16,10 @@ using System.IO;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
+using Song.Application.Core;
+using Song.Application.Songs.Commands;
+using Song.Application.Repositories;
+using Song.Persistence.Blockchain;
 
 namespace SongBlockChain
 {
@@ -44,18 +48,19 @@ namespace SongBlockChain
     {
         public static IServiceCollection AddDiscordBot(this IServiceCollection services)
         {
-            services.AddHttpClient()
+            services
+                .AddHttpClient()
                 .AddTransient<DiscordSocketClient>()
-                
                 .AddSingleton<CommandService>()
+                .AddHostedService<DiscordBot>()
                 //.AddOptions<BotOptions>().Configure<IConfiguration>((settings, config) =>
                 //{
                 //    config.GetSection("Dataverse").Bind(settings);
                 //})
                 //.Configure<BotOptions>(Config.GetSection(BotOptions.Client))
-                //.AddMediatR(typeof(Program))
+                .AddMediatR(Assembly.GetAssembly(typeof(AddSongRequest)), Assembly.GetExecutingAssembly()) //todo: investigate alternatives for adding assembly
                 .AddDbContext<SongOwnerContext>(opt => opt.UseInMemoryDatabase("myDataBase"))
-                .AddHostedService<DiscordBot>();
+                .AddTransient<IBasicSongRepository, BlockChainRepo>(); //todo: should this be registered here or on another class?
 
             return services;
         }

@@ -25,10 +25,19 @@
 	<PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Song.Application\Song.Application.csproj" />
+    <ProjectReference Include="..\Song.Persistence\Song.Persistence.csproj" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<None Update="appsettings.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Repositories\" />
 	</ItemGroup>
 
 

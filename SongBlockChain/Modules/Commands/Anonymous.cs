@@ -13,6 +13,7 @@ namespace SongBlockChain.Modules.Commands
     {
         private readonly SongOwnerContext _context;
 
+        //TODO: SWITCH TO MEDIATR
         public Anonymous(SongOwnerContext context)
         {
             this._context = context;
@@ -25,6 +26,8 @@ namespace SongBlockChain.Modules.Commands
             var discordName = Context.User.Username;
 
             //should be a mediatr request
+
+
 
             var newOwner = new Owner
             {
