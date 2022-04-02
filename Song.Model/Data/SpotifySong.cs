@@ -11,6 +11,11 @@ namespace Song.Model.Data
         public string SpotifyId { get; set; }
         public string Name { get; set; }
         public string Artist { get; set; }
-        public Owner Owner { get; set; } 
+        public Owner Owner { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("{0}, {1} (Id: {2}). Owned by {3}", Name, Artist, SpotifyId, Owner.Name);
+        }
     }
 }
